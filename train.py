@@ -205,9 +205,7 @@ def self_supervised_loss(
 if __name__ == "__main__":
     # args = parse_args()
     args = parser.parse_args()
-    args.cuda = not args.use_cuda and torch.cuda.is_available()
-    print("====================================")
-    print(args.use_cuda)
+    args.cuda = args.use_cuda and torch.cuda.is_available()
 
     # seed
     deterministic_training(args.seed)
