@@ -23,41 +23,41 @@ model:
 datasets:
     augmentation:
         image_shape: (192, 640)
-    # train:
-    #     batch_size: 1
-    #     dataset: ['KITTI']
-    #     path: ['/media/yoko/SSD-PGU3/workspace/datasets/KITTI/KITTI_raw']
-    #     split: ['data_splits/eigen_zhou_files.txt']
-    #     depth_type: ['velodyne']
-    #     repeat: [2]
-    # validation:
-    #     dataset: ['KITTI']
-    #     path: ['/media/yoko/SSD-PGU3/workspace/datasets/KITTI/KITTI_raw']
-    #     split: ['data_splits/eigen_val_files.txt',
-    #             'data_splits/eigen_test_files.txt']
-    #     depth_type: ['velodyne']
-    # test:
-    #     dataset: ['KITTI']
-    #     path: ['/media/yoko/SSD-PGU3/workspace/datasets/KITTI/KITTI_raw']
-    #     split: ['data_splits/eigen_test_files.txt']
-    #     depth_type: ['velodyne']
     train:
         batch_size: 1
         dataset: ['KITTI']
-        path: ['/media/yoko/SSD-PGU3/workspace/datasets/KITTI/monodepth/KITTI_tiny']
-        split: ['kitti_tiny.txt']
+        path: ['/media/yoko/SSD-PGU3/workspace/datasets/KITTI/KITTI_raw']
+        split: ['data_splits/eigen_zhou_files.txt']
         depth_type: ['velodyne']
         repeat: [2]
     validation:
         dataset: ['KITTI']
-        path: ['/media/yoko/SSD-PGU3/workspace/datasets/KITTI/monodepth/KITTI_tiny']
-        split: ['kitti_tiny.txt']
+        path: ['/media/yoko/SSD-PGU3/workspace/datasets/KITTI/KITTI_raw']
+        split: ['data_splits/eigen_val_files.txt',
+                'data_splits/eigen_test_files.txt']
         depth_type: ['velodyne']
     test:
         dataset: ['KITTI']
-        path: ['/media/yoko/SSD-PGU3/workspace/datasets/KITTI/monodepth/KITTI_tiny']
-        split: ['kitti_tiny.txt']
+        path: ['/media/yoko/SSD-PGU3/workspace/datasets/KITTI/KITTI_raw']
+        split: ['data_splits/eigen_test_files.txt']
         depth_type: ['velodyne']
+    # train:
+    #     batch_size: 1
+    #     dataset: ['KITTI']
+    #     path: ['/media/yoko/SSD-PGU3/workspace/datasets/KITTI/monodepth/KITTI_tiny']
+    #     split: ['kitti_tiny.txt']
+    #     depth_type: ['velodyne']
+    #     repeat: [2]
+    # validation:
+    #     dataset: ['KITTI']
+    #     path: ['/media/yoko/SSD-PGU3/workspace/datasets/KITTI/monodepth/KITTI_tiny']
+    #     split: ['kitti_tiny.txt']
+    #     depth_type: ['velodyne']
+    # test:
+    #     dataset: ['KITTI']
+    #     path: ['/media/yoko/SSD-PGU3/workspace/datasets/KITTI/monodepth/KITTI_tiny']
+    #     split: ['kitti_tiny.txt']
+    #     depth_type: ['velodyne']
 save:
     folder: 'result/train'
 
