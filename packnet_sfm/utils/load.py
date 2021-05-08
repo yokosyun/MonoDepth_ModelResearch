@@ -3,7 +3,8 @@
 import importlib
 import logging
 import os
-import warnings
+
+# import warnings
 import torch
 
 from inspect import signature
@@ -15,21 +16,21 @@ from packnet_sfm.utils.horovod import print0
 from packnet_sfm.utils.types import is_str
 
 
-def set_debug(debug):
-    """
-    Enable or disable debug terminal logging
+# def set_debug(debug):
+#     """
+#     Enable or disable debug terminal logging
 
-    Parameters
-    ----------
-    debug : bool
-        Debugging flag (True to enable)
-    """
-    # Disable logging if requested
-    if not debug:
-        os.environ["NCCL_DEBUG"] = ""
-        os.environ["WANDB_SILENT"] = "false"
-        warnings.filterwarnings("ignore")
-        logging.disable(logging.CRITICAL)
+#     Parameters
+#     ----------
+#     debug : bool
+#         Debugging flag (True to enable)
+#     """
+#     # Disable logging if requested
+#     if not debug:
+#         os.environ["NCCL_DEBUG"] = ""
+#         os.environ["WANDB_SILENT"] = "false"
+#         warnings.filterwarnings("ignore")
+#         logging.disable(logging.CRITICAL)
 
 
 def filter_args(func, keys):
