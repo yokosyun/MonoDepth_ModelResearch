@@ -1,6 +1,6 @@
-
 try:
     import horovod.torch as hvd
+
     HAS_HOROVOD = True
 except ImportError:
     HAS_HOROVOD = False
@@ -11,21 +11,22 @@ def hvd_init():
         hvd.init()
     return HAS_HOROVOD
 
+
 def on_rank_0(func):
     def wrapper(*args, **kwargs):
         if rank() == 0:
             func(*args, **kwargs)
+
     return wrapper
+
 
 def rank():
     return hvd.rank() if HAS_HOROVOD else 0
 
+
 def world_size():
     return hvd.size() if HAS_HOROVOD else 1
 
-@on_rank_0
-def print0(string='\n'):
-    print(string)
 
 def reduce_value(value, average, name):
     """

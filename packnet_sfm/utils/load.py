@@ -12,7 +12,6 @@ from collections import OrderedDict
 
 from packnet_sfm.utils.misc import make_list, same_shape
 from packnet_sfm.utils.logging import pcolor
-from packnet_sfm.utils.horovod import print0
 from packnet_sfm.utils.types import is_str
 
 
@@ -159,13 +158,6 @@ def load_network(network, path, prefixes=""):
     network.load_state_dict(updated_state_dict, strict=False)
     base_color, attrs = "cyan", ["bold", "dark"]
     color = "green" if n == n_total else "yellow" if n > 0 else "red"
-    print0(
-        pcolor(
-            "###### Pretrained {} loaded:".format(prefixes[0]), base_color, attrs=attrs
-        )
-        + pcolor(" {}/{} ".format(n, n_total), color, attrs=attrs)
-        + pcolor("tensors", base_color, attrs=attrs)
-    )
     return network
 
 
