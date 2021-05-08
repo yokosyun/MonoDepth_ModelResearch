@@ -47,9 +47,6 @@ def train(file):
         if config.checkpoint.filepath is "" or rank() > 0
         else filter_args_create(ModelCheckpoint, config.checkpoint)
     )
-    print(config.checkpoint.filepath)
-    print(checkpoint)
-    print("~~~~~~~~~~~~~~~~~~")
 
     # Initialize model wrapper
     model_wrapper = ModelWrapper(config, resume=ckpt)
