@@ -10,7 +10,7 @@ from cv2 import imwrite
 
 from packnet_sfm.models.model_wrapper import ModelWrapper
 from packnet_sfm.datasets.augmentations import resize_image, to_tensor
-from packnet_sfm.utils.horovod import hvd_init, rank, world_size, print0
+from packnet_sfm.utils.horovod import hvd_init, rank, world_size
 from packnet_sfm.utils.image import load_image
 from packnet_sfm.utils.config import parse_test_file
 
@@ -173,7 +173,6 @@ def main(args):
         for ext in ["png", "jpg"]:
             files.extend(glob((os.path.join(args.input, "*.{}".format(ext)))))
         files.sort()
-        print0("Found {} files".format(len(files)))
     else:
         # Otherwise, use it as is
         files = [args.input]
