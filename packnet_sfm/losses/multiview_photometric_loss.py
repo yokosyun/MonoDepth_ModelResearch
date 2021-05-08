@@ -11,6 +11,7 @@ from packnet_sfm.losses.loss_base import LossBase, ProgressiveScaling
 
 ########################################################################################################################
 
+
 def SSIM(x, y, C1=1e-4, C2=9e-4, kernel_size=3, stride=1):
     """
     Structural SIMilarity (SSIM) distance between two images.
@@ -52,7 +53,9 @@ def SSIM(x, y, C1=1e-4, C2=9e-4, kernel_size=3, stride=1):
 
     return ssim
 
+
 ########################################################################################################################
+
 
 class MultiViewPhotometricLoss(LossBase):
     """
@@ -88,10 +91,23 @@ class MultiViewPhotometricLoss(LossBase):
     kwargs : dict
         Extra parameters
     """
-    def __init__(self, num_scales=4, ssim_loss_weight=0.85, occ_reg_weight=0.1, smooth_loss_weight=0.1,
-                 C1=1e-4, C2=9e-4, photometric_reduce_op='mean', disp_norm=True, clip_loss=0.5,
-                 progressive_scaling=0.0, padding_mode='zeros',
-                 automask_loss=False, **kwargs):
+
+    def __init__(
+        self,
+        num_scales=4,
+        ssim_loss_weight=0.85,
+        occ_reg_weight=0.1,
+        smooth_loss_weight=0.1,
+        C1=1e-4,
+        C2=9e-4,
+        photometric_reduce_op="mean",
+        disp_norm=True,
+        clip_loss=0.5,
+        progressive_scaling=0.0,
+        padding_mode="zeros",
+        automask_loss=False,
+        **kwargs
+    ):
         super().__init__()
         self.n = num_scales
         self.progressive_scaling = progressive_scaling
@@ -105,24 +121,24 @@ class MultiViewPhotometricLoss(LossBase):
         self.clip_loss = clip_loss
         self.padding_mode = padding_mode
         self.automask_loss = automask_loss
-        self.progressive_scaling = ProgressiveScaling(
-            progressive_scaling, self.n)
+        self.progressive_scaling = ProgressiveScaling(progressive_scaling, self.n)
 
         # Asserts
         if self.automask_loss:
-            assert self.photometric_reduce_op == 'min', \
-                'For automasking only the min photometric_reduce_op is supported.'
+            assert (
+                self.photometric_reduce_op == "min"
+            ), "For automasking only the min photometric_reduce_op is supported."
 
-########################################################################################################################
+    ########################################################################################################################
 
     @property
     def logs(self):
         """Returns class logs."""
         return {
-            'num_scales': self.n,
+            "num_scales": self.n,
         }
 
-########################################################################################################################
+    ########################################################################################################################
 
     def warp_ref_image(self, inv_depths, ref_image, K, ref_K, pose):
         """
@@ -154,17 +170,26 @@ class MultiViewPhotometricLoss(LossBase):
             _, _, DH, DW = inv_depths[i].shape
             scale_factor = DW / float(W)
             cams.append(Camera(K=K.float()).scaled(scale_factor).to(device))
-            ref_cams.append(Camera(K=ref_K.float(), Tcw=pose).scaled(scale_factor).to(device))
+            ref_cams.append(
+                Camera(K=ref_K.float(), Tcw=pose).scaled(scale_factor).to(device)
+            )
         # View synthesis
         depths = [inv2depth(inv_depths[i]) for i in range(self.n)]
         ref_images = match_scales(ref_image, inv_depths, self.n)
-        ref_warped = [view_synthesis(
-            ref_images[i], depths[i], ref_cams[i], cams[i],
-            padding_mode=self.padding_mode) for i in range(self.n)]
+        ref_warped = [
+            view_synthesis(
+                ref_images[i],
+                depths[i],
+                ref_cams[i],
+                cams[i],
+                padding_mode=self.padding_mode,
+            )
+            for i in range(self.n)
+        ]
         # Return warped reference image
         return ref_warped
 
-########################################################################################################################
+    ########################################################################################################################
 
     def SSIM(self, x, y, kernel_size=3):
         """
@@ -183,7 +208,7 @@ class MultiViewPhotometricLoss(LossBase):
             SSIM loss
         """
         ssim_value = SSIM(x, y, C1=self.C1, C2=self.C2, kernel_size=kernel_size)
-        return torch.clamp((1. - ssim_value) / 2., 0., 1.)
+        return torch.clamp((1.0 - ssim_value) / 2.0, 0.0, 1.0)
 
     def calc_photometric_loss(self, t_est, images):
         """
@@ -201,16 +226,18 @@ class MultiViewPhotometricLoss(LossBase):
             Photometric loss
         """
         # L1 loss
-        l1_loss = [torch.abs(t_est[i] - images[i])
-                   for i in range(self.n)]
+        l1_loss = [torch.abs(t_est[i] - images[i]) for i in range(self.n)]
         # SSIM loss
         if self.ssim_loss_weight > 0.0:
-            ssim_loss = [self.SSIM(t_est[i], images[i], kernel_size=3)
-                         for i in range(self.n)]
+            ssim_loss = [
+                self.SSIM(t_est[i], images[i], kernel_size=3) for i in range(self.n)
+            ]
             # Weighted Sum: alpha * ssim + (1 - alpha) * l1
-            photometric_loss = [self.ssim_loss_weight * ssim_loss[i].mean(1, True) +
-                                (1 - self.ssim_loss_weight) * l1_loss[i].mean(1, True)
-                                for i in range(self.n)]
+            photometric_loss = [
+                self.ssim_loss_weight * ssim_loss[i].mean(1, True)
+                + (1 - self.ssim_loss_weight) * l1_loss[i].mean(1, True)
+                for i in range(self.n)
+            ]
         else:
             photometric_loss = l1_loss
         # Clip loss
@@ -218,7 +245,8 @@ class MultiViewPhotometricLoss(LossBase):
             for i in range(self.n):
                 mean, std = photometric_loss[i].mean(), photometric_loss[i].std()
                 photometric_loss[i] = torch.clamp(
-                    photometric_loss[i], max=float(mean + self.clip_loss * std))
+                    photometric_loss[i], max=float(mean + self.clip_loss * std)
+                )
         # Return total photometric loss
         return photometric_loss
 
@@ -238,21 +266,27 @@ class MultiViewPhotometricLoss(LossBase):
         """
         # Reduce function
         def reduce_function(losses):
-            if self.photometric_reduce_op == 'mean':
+            if self.photometric_reduce_op == "mean":
                 return sum([l.mean() for l in losses]) / len(losses)
-            elif self.photometric_reduce_op == 'min':
+            elif self.photometric_reduce_op == "min":
                 return torch.cat(losses, 1).min(1, True)[0].mean()
             else:
                 raise NotImplementedError(
-                    'Unknown photometric_reduce_op: {}'.format(self.photometric_reduce_op))
+                    "Unknown photometric_reduce_op: {}".format(
+                        self.photometric_reduce_op
+                    )
+                )
+
         # Reduce photometric loss
-        photometric_loss = sum([reduce_function(photometric_losses[i])
-                                for i in range(self.n)]) / self.n
+        photometric_loss = (
+            sum([reduce_function(photometric_losses[i]) for i in range(self.n)])
+            / self.n
+        )
         # Store and return reduced photometric loss
-        self.add_metric('photometric_loss', photometric_loss)
+        self.add_metric("photometric_loss", photometric_loss)
         return photometric_loss
 
-########################################################################################################################
+    ########################################################################################################################
 
     def calc_smoothness_loss(self, inv_depths, images):
         """
@@ -273,19 +307,35 @@ class MultiViewPhotometricLoss(LossBase):
         # Calculate smoothness gradients
         smoothness_x, smoothness_y = calc_smoothness(inv_depths, images, self.n)
         # Calculate smoothness loss
-        smoothness_loss = sum([(smoothness_x[i].abs().mean() +
-                                smoothness_y[i].abs().mean()) / 2 ** i
-                               for i in range(self.n)]) / self.n
+        smoothness_loss = (
+            sum(
+                [
+                    (smoothness_x[i].abs().mean() + smoothness_y[i].abs().mean())
+                    / 2 ** i
+                    for i in range(self.n)
+                ]
+            )
+            / self.n
+        )
         # Apply smoothness loss weight
         smoothness_loss = self.smooth_loss_weight * smoothness_loss
         # Store and return smoothness loss
-        self.add_metric('smoothness_loss', smoothness_loss)
+        self.add_metric("smoothness_loss", smoothness_loss)
         return smoothness_loss
 
-########################################################################################################################
+    ########################################################################################################################
 
-    def forward(self, image, context, inv_depths,
-                K, ref_K, poses, return_logs=False, progress=0.0):
+    def forward(
+        self,
+        image,
+        context,
+        inv_depths,
+        K,
+        ref_K,
+        poses,
+        return_logs=False,
+        progress=0.0,
+    ):
         """
         Calculates training photometric loss.
 
@@ -339,8 +389,9 @@ class MultiViewPhotometricLoss(LossBase):
             loss += self.calc_smoothness_loss(inv_depths, images)
         # Return losses and metrics
         return {
-            'loss': loss.unsqueeze(0),
-            'metrics': self.metrics,
+            "loss": loss.unsqueeze(0),
+            "metrics": self.metrics,
         }
+
 
 ########################################################################################################################

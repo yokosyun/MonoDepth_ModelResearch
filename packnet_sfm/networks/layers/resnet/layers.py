@@ -22,8 +22,8 @@ def disp_to_depth(disp, min_depth, max_depth):
 
 
 class ConvBlock(nn.Module):
-    """Layer to perform a convolution followed by ELU
-    """
+    """Layer to perform a convolution followed by ELU"""
+
     def __init__(self, in_channels, out_channels):
         super(ConvBlock, self).__init__()
 
@@ -37,8 +37,8 @@ class ConvBlock(nn.Module):
 
 
 class Conv3x3(nn.Module):
-    """Layer to pad and convolve input
-    """
+    """Layer to pad and convolve input"""
+
     def __init__(self, in_channels, out_channels, use_refl=True):
         super(Conv3x3, self).__init__()
 
@@ -55,8 +55,5 @@ class Conv3x3(nn.Module):
 
 
 def upsample(x):
-    """Upsample input tensor by a factor of 2
-    """
+    """Upsample input tensor by a factor of 2"""
     return F.interpolate(x, scale_factor=2, mode="nearest")
-
-

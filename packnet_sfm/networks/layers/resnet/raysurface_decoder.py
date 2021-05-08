@@ -19,7 +19,7 @@ class RaySurfaceDecoder(nn.Module):
 
         self.num_output_channels = num_output_channels
         self.use_skips = use_skips
-        self.upsample_mode = 'nearest'
+        self.upsample_mode = "nearest"
         self.scales = scales
 
         self.num_ch_enc = num_ch_enc
@@ -41,7 +41,9 @@ class RaySurfaceDecoder(nn.Module):
             self.convs[("upconv", i, 1)] = ConvBlock(num_ch_in, num_ch_out)
 
         for s in self.scales:
-            self.convs[("dispconv", s)] = Conv3x3(self.num_ch_dec[s], self.num_output_channels)
+            self.convs[("dispconv", s)] = Conv3x3(
+                self.num_ch_dec[s], self.num_output_channels
+            )
 
         self.decoder = nn.ModuleList(list(self.convs.values()))
         self.tanh = nn.Tanh()

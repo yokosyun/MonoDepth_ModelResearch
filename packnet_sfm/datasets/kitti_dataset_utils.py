@@ -8,18 +8,20 @@ __author__ = "Lee Clement"
 __email__ = "lee.clement@robotics.utias.utoronto.ca"
 
 # Per dataformat.txt
-OxtsPacket = namedtuple('OxtsPacket',
-                        'lat, lon, alt, ' +
-                        'roll, pitch, yaw, ' +
-                        'vn, ve, vf, vl, vu, ' +
-                        'ax, ay, az, af, al, au, ' +
-                        'wx, wy, wz, wf, wl, wu, ' +
-                        'pos_accuracy, vel_accuracy, ' +
-                        'navstat, numsats, ' +
-                        'posmode, velmode, orimode')
+OxtsPacket = namedtuple(
+    "OxtsPacket",
+    "lat, lon, alt, "
+    + "roll, pitch, yaw, "
+    + "vn, ve, vf, vl, vu, "
+    + "ax, ay, az, af, al, au, "
+    + "wx, wy, wz, wf, wl, wu, "
+    + "pos_accuracy, vel_accuracy, "
+    + "navstat, numsats, "
+    + "posmode, velmode, orimode",
+)
 
 # Bundle into an easy-to-access structure
-OxtsData = namedtuple('OxtsData', 'packet, T_w_imu')
+OxtsData = namedtuple("OxtsData", "packet, T_w_imu")
 
 
 def rotx(t):
@@ -38,9 +40,7 @@ def rotx(t):
     """
     c = np.cos(t)
     s = np.sin(t)
-    return np.array([[1,  0,  0],
-                     [0,  c, -s],
-                     [0,  s,  c]])
+    return np.array([[1, 0, 0], [0, c, -s], [0, s, c]])
 
 
 def roty(t):
@@ -59,9 +59,7 @@ def roty(t):
     """
     c = np.cos(t)
     s = np.sin(t)
-    return np.array([[c,  0,  s],
-                     [0,  1,  0],
-                     [-s, 0,  c]])
+    return np.array([[c, 0, s], [0, 1, 0], [-s, 0, c]])
 
 
 def rotz(t):
@@ -80,9 +78,7 @@ def rotz(t):
     """
     c = np.cos(t)
     s = np.sin(t)
-    return np.array([[c, -s,  0],
-                     [s,  c,  0],
-                     [0,  0,  1]])
+    return np.array([[c, -s, 0], [s, c, 0], [0, 0, 1]])
 
 
 def transform_from_rot_trans(R, t):
@@ -122,9 +118,9 @@ def read_calib_file(filepath):
     """
     data = {}
 
-    with open(filepath, 'r') as f:
+    with open(filepath, "r") as f:
         for line in f.readlines():
-            key, value = line.split(':', 1)
+            key, value = line.split(":", 1)
             # The only non-float values in these files are dates, which
             # we don't care about anyway
             try:
@@ -154,12 +150,11 @@ def pose_from_oxts_packet(raw_data, scale):
         Translation vector
     """
     packet = OxtsPacket(*raw_data)
-    er = 6378137.  # earth radius (approx.) in meters
+    er = 6378137.0  # earth radius (approx.) in meters
 
     # Use a Mercator projection to get the translation vector
-    tx = scale * packet.lon * np.pi * er / 180.
-    ty = scale * er * \
-        np.log(np.tan((90. + packet.lat) * np.pi / 360.))
+    tx = scale * packet.lon * np.pi * er / 180.0
+    ty = scale * er * np.log(np.tan((90.0 + packet.lat) * np.pi / 360.0))
     tz = packet.alt
     t = np.array([tx, ty, tz])
 
@@ -197,7 +192,7 @@ def load_oxts_packets_and_poses(oxts_files):
     oxts = []
 
     for filename in oxts_files:
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             for line in f.readlines():
                 line = line.split()
                 # Last five entries are flags and counts
@@ -207,7 +202,7 @@ def load_oxts_packets_and_poses(oxts_files):
                 packet = OxtsPacket(*line)
 
                 if scale is None:
-                    scale = np.cos(packet.lat * np.pi / 180.)
+                    scale = np.cos(packet.lat * np.pi / 180.0)
 
                 R, t = pose_from_oxts_packet(packet, scale)
 
@@ -219,5 +214,3 @@ def load_oxts_packets_and_poses(oxts_files):
                 oxts.append(OxtsData(packet, T_w_imu))
 
     return oxts
-
-
