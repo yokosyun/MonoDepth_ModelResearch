@@ -8,6 +8,7 @@ from packnet_sfm.networks.layers.resnet.pose_decoder import PoseDecoder
 
 ########################################################################################################################
 
+
 class PoseResNet(nn.Module):
     """
     Pose network based on the ResNet architecture.
@@ -22,16 +23,25 @@ class PoseResNet(nn.Module):
     kwargs : dict
         Extra parameters
     """
+
     def __init__(self, version=None, **kwargs):
         super().__init__()
         assert version is not None, "PoseResNet needs a version"
 
-        num_layers = int(version[:2])       # First two characters are the number of layers
-        pretrained = version[2:] == 'pt'    # If the last characters are "pt", use ImageNet pretraining
-        assert num_layers in [18, 34, 50], 'ResNet version {} not available'.format(num_layers)
+        num_layers = int(version[:2])  # First two characters are the number of layers
+        pretrained = (
+            version[2:] == "pt"
+        )  # If the last characters are "pt", use ImageNet pretraining
+        assert num_layers in [18, 34, 50], "ResNet version {} not available".format(
+            num_layers
+        )
 
-        self.encoder = ResnetEncoder(num_layers=num_layers, pretrained=pretrained, num_input_images=2)
-        self.decoder = PoseDecoder(self.encoder.num_ch_enc, num_input_features=1, num_frames_to_predict_for=2)
+        self.encoder = ResnetEncoder(
+            num_layers=num_layers, pretrained=pretrained, num_input_images=2
+        )
+        self.decoder = PoseDecoder(
+            self.encoder.num_ch_enc, num_input_features=1, num_frames_to_predict_for=2
+        )
 
     def forward(self, target_image, ref_imgs):
         """
@@ -46,5 +56,5 @@ class PoseResNet(nn.Module):
         pose = torch.cat(outputs, 1)
         return pose
 
-########################################################################################################################
 
+########################################################################################################################

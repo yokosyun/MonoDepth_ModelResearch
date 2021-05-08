@@ -5,11 +5,13 @@ from packnet_sfm.geometry.pose_utils import invert_pose, pose_vec2mat
 
 ########################################################################################################################
 
+
 class Pose:
     """
     Pose class, that encapsulates a [4,4] transformation matrix
     for a specific reference frame
     """
+
     def __init__(self, mat):
         """
         Initializes a Pose object.
@@ -29,12 +31,12 @@ class Pose:
         """Batch size of the transformation matrix"""
         return len(self.mat)
 
-########################################################################################################################
+    ########################################################################################################################
 
     @classmethod
     def identity(cls, N=1, device=None, dtype=torch.float):
         """Initializes as a [4,4] identity matrix"""
-        return cls(torch.eye(4, device=device, dtype=dtype).repeat([N,1,1]))
+        return cls(torch.eye(4, device=device, dtype=dtype).repeat([N, 1, 1]))
 
     @classmethod
     def from_vec(cls, vec, mode):
@@ -45,7 +47,7 @@ class Pose:
         pose[:, :3, -1] = mat[:, :3, -1]
         return cls(pose)
 
-########################################################################################################################
+    ########################################################################################################################
 
     @property
     def shape(self):
@@ -70,7 +72,7 @@ class Pose:
         self.mat = self.mat.to(*args, **kwargs)
         return self
 
-########################################################################################################################
+    ########################################################################################################################
 
     def transform_pose(self, pose):
         """Creates a new pose object that compounds this and another one (self * pose)"""
@@ -81,8 +83,9 @@ class Pose:
         """Transforms 3D points using this object"""
         assert points.shape[1] == 3
         B, _, H, W = points.shape
-        out = self.mat[:,:3,:3].bmm(points.view(B, 3, -1)) + \
-              self.mat[:,:3,-1].unsqueeze(-1)
+        out = self.mat[:, :3, :3].bmm(points.view(B, 3, -1)) + self.mat[
+            :, :3, -1
+        ].unsqueeze(-1)
         return out.view(B, 3, H, W)
 
     def __matmul__(self, other):
@@ -94,8 +97,9 @@ class Pose:
                 assert other.dim() == 3 or other.dim() == 4
                 return self.transform_points(other)
             else:
-                raise ValueError('Unknown tensor dimensions {}'.format(other.shape))
+                raise ValueError("Unknown tensor dimensions {}".format(other.shape))
         else:
             raise NotImplementedError()
+
 
 ########################################################################################################################

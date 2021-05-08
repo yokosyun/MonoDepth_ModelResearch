@@ -8,6 +8,7 @@ import torch.nn as nn
 
 ########################################################################################################################
 
+
 def conv_gn(in_planes, out_planes, kernel_size=3):
     """
     Convolutional block with GroupNorm
@@ -27,24 +28,33 @@ def conv_gn(in_planes, out_planes, kernel_size=3):
         Sequence of Conv2D + GroupNorm + ReLU
     """
     return nn.Sequential(
-        nn.Conv2d(in_planes, out_planes, kernel_size=kernel_size,
-                  padding=(kernel_size - 1) // 2, stride=2),
+        nn.Conv2d(
+            in_planes,
+            out_planes,
+            kernel_size=kernel_size,
+            padding=(kernel_size - 1) // 2,
+            stride=2,
+        ),
         nn.GroupNorm(16, out_planes),
-        nn.ReLU(inplace=True)
+        nn.ReLU(inplace=True),
     )
 
+
 ########################################################################################################################
+
 
 class PoseNet(nn.Module):
     """Pose network """
 
-    def __init__(self, nb_ref_imgs=2, rotation_mode='euler', **kwargs):
+    def __init__(self, nb_ref_imgs=2, rotation_mode="euler", **kwargs):
         super().__init__()
         self.nb_ref_imgs = nb_ref_imgs
         self.rotation_mode = rotation_mode
 
         conv_channels = [16, 32, 64, 128, 256, 256, 256]
-        self.conv1 = conv_gn(3 * (1 + self.nb_ref_imgs), conv_channels[0], kernel_size=7)
+        self.conv1 = conv_gn(
+            3 * (1 + self.nb_ref_imgs), conv_channels[0], kernel_size=7
+        )
         self.conv2 = conv_gn(conv_channels[0], conv_channels[1], kernel_size=5)
         self.conv3 = conv_gn(conv_channels[1], conv_channels[2])
         self.conv4 = conv_gn(conv_channels[2], conv_channels[3])
@@ -52,8 +62,9 @@ class PoseNet(nn.Module):
         self.conv6 = conv_gn(conv_channels[4], conv_channels[5])
         self.conv7 = conv_gn(conv_channels[5], conv_channels[6])
 
-        self.pose_pred = nn.Conv2d(conv_channels[6], 6 * self.nb_ref_imgs,
-                                   kernel_size=1, padding=0)
+        self.pose_pred = nn.Conv2d(
+            conv_channels[6], 6 * self.nb_ref_imgs, kernel_size=1, padding=0
+        )
 
         self.init_weights()
 
@@ -65,7 +76,7 @@ class PoseNet(nn.Module):
                     m.bias.data.zero_()
 
     def forward(self, image, context):
-        assert (len(context) == self.nb_ref_imgs)
+        assert len(context) == self.nb_ref_imgs
         input = [image]
         input.extend(context)
         input = torch.cat(input, 1)
@@ -82,5 +93,6 @@ class PoseNet(nn.Module):
         pose = 0.01 * pose.view(pose.size(0), self.nb_ref_imgs, 6)
 
         return pose
+
 
 ########################################################################################################################

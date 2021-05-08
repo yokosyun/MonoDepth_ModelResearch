@@ -7,6 +7,7 @@ import torch.nn.functional as F
 
 ########################################################################################################################
 
+
 class Conv2D(nn.Module):
     """
     2D convolution with GroupNorm and ELU
@@ -22,11 +23,13 @@ class Conv2D(nn.Module):
     stride : int
         Stride
     """
+
     def __init__(self, in_channels, out_channels, kernel_size, stride):
         super().__init__()
         self.kernel_size = kernel_size
         self.conv_base = nn.Conv2d(
-            in_channels, out_channels, kernel_size=kernel_size, stride=stride)
+            in_channels, out_channels, kernel_size=kernel_size, stride=stride
+        )
         self.pad = nn.ConstantPad2d([kernel_size // 2] * 4, value=0)
         self.normalize = torch.nn.GroupNorm(16, out_channels)
         self.activ = nn.ELU(inplace=True)
@@ -39,6 +42,7 @@ class Conv2D(nn.Module):
 
 class ResidualConv(nn.Module):
     """2D Convolutional residual block with GroupNorm and ELU"""
+
     def __init__(self, in_channels, out_channels, stride, dropout=None):
         """
         Initializes a ResidualConv object.
@@ -97,6 +101,7 @@ def ResidualBlock(in_channels, out_channels, num_blocks, stride, dropout=None):
 
 class InvDepth(nn.Module):
     """Inverse depth layer"""
+
     def __init__(self, in_channels, out_channels=1, min_depth=0.5):
         """
         Initializes an InvDepth object.
@@ -121,7 +126,9 @@ class InvDepth(nn.Module):
         x = self.conv1(self.pad(x))
         return self.activ(x) / self.min_depth
 
+
 ########################################################################################################################
+
 
 def packing(x, r=2):
     """
@@ -147,13 +154,16 @@ def packing(x, r=2):
     x = x.contiguous().view(b, c, out_h, r, out_w, r)
     return x.permute(0, 1, 3, 5, 2, 4).contiguous().view(b, out_channel, out_h, out_w)
 
+
 ########################################################################################################################
+
 
 class PackLayerConv2d(nn.Module):
     """
     Packing layer with 2d convolutions. Takes a [B,C,H,W] tensor, packs it
     into [B,(r^2)C,H/r,W/r] and then convolves it to produce [B,C,H/r,W/r].
     """
+
     def __init__(self, in_channels, kernel_size, r=2):
         """
         Initializes a PackLayerConv2d object.
@@ -183,6 +193,7 @@ class UnpackLayerConv2d(nn.Module):
     Unpacking layer with 2d convolutions. Takes a [B,C,H,W] tensor, convolves it
     to produce [B,(r^2)C,H,W] and then unpacks it to produce [B,C,rH,rW].
     """
+
     def __init__(self, in_channels, out_channels, kernel_size, r=2):
         """
         Initializes a UnpackLayerConv2d object.
@@ -208,13 +219,16 @@ class UnpackLayerConv2d(nn.Module):
         x = self.unpack(x)
         return x
 
+
 ########################################################################################################################
+
 
 class PackLayerConv3d(nn.Module):
     """
     Packing layer with 3d convolutions. Takes a [B,C,H,W] tensor, packs it
     into [B,(r^2)C,H/r,W/r] and then convolves it to produce [B,C,H/r,W/r].
     """
+
     def __init__(self, in_channels, kernel_size, r=2, d=8):
         """
         Initializes a PackLayerConv3d object.
@@ -233,8 +247,9 @@ class PackLayerConv3d(nn.Module):
         super().__init__()
         self.conv = Conv2D(in_channels * (r ** 2) * d, in_channels, kernel_size, 1)
         self.pack = partial(packing, r=r)
-        self.conv3d = nn.Conv3d(1, d, kernel_size=(3, 3, 3),
-                                stride=(1, 1, 1), padding=(1, 1, 1))
+        self.conv3d = nn.Conv3d(
+            1, d, kernel_size=(3, 3, 3), stride=(1, 1, 1), padding=(1, 1, 1)
+        )
 
     def forward(self, x):
         """Runs the PackLayerConv3d layer."""
@@ -252,6 +267,7 @@ class UnpackLayerConv3d(nn.Module):
     Unpacking layer with 3d convolutions. Takes a [B,C,H,W] tensor, convolves it
     to produce [B,(r^2)C,H,W] and then unpacks it to produce [B,C,rH,rW].
     """
+
     def __init__(self, in_channels, out_channels, kernel_size, r=2, d=8):
         """
         Initializes a UnpackLayerConv3d object.
@@ -272,8 +288,9 @@ class UnpackLayerConv3d(nn.Module):
         super().__init__()
         self.conv = Conv2D(in_channels, out_channels * (r ** 2) // d, kernel_size, 1)
         self.unpack = nn.PixelShuffle(r)
-        self.conv3d = nn.Conv3d(1, d, kernel_size=(3, 3, 3),
-                                stride=(1, 1, 1), padding=(1, 1, 1))
+        self.conv3d = nn.Conv3d(
+            1, d, kernel_size=(3, 3, 3), stride=(1, 1, 1), padding=(1, 1, 1)
+        )
 
     def forward(self, x):
         """Runs the UnpackLayerConv3d layer."""
@@ -284,5 +301,6 @@ class UnpackLayerConv3d(nn.Module):
         x = x.view(b, c * d, h, w)
         x = self.unpack(x)
         return x
+
 
 ########################################################################################################################

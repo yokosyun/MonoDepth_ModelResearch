@@ -1,4 +1,3 @@
-
 import torch
 import numpy as np
 from collections import OrderedDict
@@ -28,7 +27,8 @@ def reduce_dict(data, to_item=False):
             data[key] = data[key].item()
     return data
 
-def all_reduce_metrics(output_data_batch, datasets, name='depth'):
+
+def all_reduce_metrics(output_data_batch, datasets, name="depth"):
     """
     Reduce metrics for all batches and all datasets using Horovod
 
@@ -50,7 +50,9 @@ def all_reduce_metrics(output_data_batch, datasets, name='depth'):
     if isinstance(output_data_batch[0], dict):
         output_data_batch = [output_data_batch]
     # Get metrics keys and dimensions
-    names = [key for key in list(output_data_batch[0][0].keys()) if key.startswith(name)]
+    names = [
+        key for key in list(output_data_batch[0][0].keys()) if key.startswith(name)
+    ]
     dims = [output_data_batch[0][0][name].shape[0] for name in names]
     # List storing metrics for all datasets
     all_metrics_dict = []
@@ -61,16 +63,17 @@ def all_reduce_metrics(output_data_batch, datasets, name='depth'):
         # Count how many times each sample was seen
         seen = torch.zeros(length)
         for output in output_batch:
-            for i, idx in enumerate(output['idx']):
+            for i, idx in enumerate(output["idx"]):
                 seen[idx] += 1
-        seen = reduce_value(seen, average=False, name='idx')
-        assert not np.any(seen.numpy() == 0), \
-            'Not all samples were seen during evaluation'
+        seen = reduce_value(seen, average=False, name="idx")
+        assert not np.any(
+            seen.numpy() == 0
+        ), "Not all samples were seen during evaluation"
         # Reduce all relevant metrics
         for name, dim in zip(names, dims):
             metrics = torch.zeros(length, dim)
             for output in output_batch:
-                for i, idx in enumerate(output['idx']):
+                for i, idx in enumerate(output["idx"]):
                     metrics[idx] = output[name]
             metrics = reduce_value(metrics, average=False, name=name)
             metrics_dict[name] = (metrics / seen.view(-1, 1)).mean(0)
@@ -79,9 +82,11 @@ def all_reduce_metrics(output_data_batch, datasets, name='depth'):
     # Return list of metrics dictionary
     return all_metrics_dict
 
+
 ########################################################################################################################
 
-def collate_metrics(output_data_batch, name='depth'):
+
+def collate_metrics(output_data_batch, name="depth"):
     """
     Collate epoch output to produce average metrics
 
@@ -114,8 +119,8 @@ def collate_metrics(output_data_batch, name='depth'):
     # Return metrics data
     return metrics_data
 
-def create_dict(metrics_data, metrics_keys, metrics_modes,
-                dataset, name='depth'):
+
+def create_dict(metrics_data, metrics_keys, metrics_modes, dataset, name="depth"):
     """
     Creates a dictionary from collated metrics
 
@@ -141,17 +146,20 @@ def create_dict(metrics_data, metrics_keys, metrics_modes,
     metrics_dict = {}
     # For all datasets
     for n, metrics in enumerate(metrics_data):
-        if metrics: # If there are calculated metrics
+        if metrics:  # If there are calculated metrics
             prefix = prepare_dataset_prefix(dataset, n)
             # For all keys
             for i, key in enumerate(metrics_keys):
                 for mode in metrics_modes:
-                    metrics_dict['{}-{}{}'.format(prefix, key, mode)] =\
-                        metrics['{}{}'.format(name, mode)][i].item()
+                    metrics_dict["{}-{}{}".format(prefix, key, mode)] = metrics[
+                        "{}{}".format(name, mode)
+                    ][i].item()
     # Return metrics dictionary
     return metrics_dict
 
+
 ########################################################################################################################
+
 
 def average_key(batch_list, key):
     """
@@ -171,6 +179,7 @@ def average_key(batch_list, key):
     """
     values = [batch[key] for batch in batch_list]
     return sum(values) / len(values)
+
 
 def average_sub_key(batch_list, key, sub_key):
     """
@@ -193,6 +202,7 @@ def average_sub_key(batch_list, key, sub_key):
     values = [batch[key][sub_key] for batch in batch_list]
     return sum(values) / len(values)
 
+
 def average_loss_and_metrics(batch_list, prefix):
     """
     Average loss and metrics values in a list of batches
@@ -210,13 +220,14 @@ def average_loss_and_metrics(batch_list, prefix):
         Dictionary containing a 'loss' float entry and a 'metrics' dict entry
     """
     values = OrderedDict()
-    key = 'loss'
-    values['{}-{}'.format(prefix, key)] = \
-        average_key(batch_list, key)
-    key = 'metrics'
+    key = "loss"
+    values["{}-{}".format(prefix, key)] = average_key(batch_list, key)
+    key = "metrics"
     for sub_key in batch_list[0][key].keys():
-        values['{}-{}'.format(prefix, sub_key)] = \
-            average_sub_key(batch_list, key, sub_key)
+        values["{}-{}".format(prefix, sub_key)] = average_sub_key(
+            batch_list, key, sub_key
+        )
     return values
+
 
 ########################################################################################################################

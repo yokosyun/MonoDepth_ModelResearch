@@ -9,6 +9,7 @@ from packnet_sfm.networks.layers.resnet.layers import disp_to_depth
 
 ########################################################################################################################
 
+
 class DepthResNet(nn.Module):
     """
     Inverse depth network based on the ResNet architecture.
@@ -23,13 +24,18 @@ class DepthResNet(nn.Module):
     kwargs : dict
         Extra parameters
     """
+
     def __init__(self, version=None, **kwargs):
         super().__init__()
         assert version is not None, "DispResNet needs a version"
 
-        num_layers = int(version[:2])       # First two characters are the number of layers
-        pretrained = version[2:] == 'pt'    # If the last characters are "pt", use ImageNet pretraining
-        assert num_layers in [18, 34, 50], 'ResNet version {} not available'.format(num_layers)
+        num_layers = int(version[:2])  # First two characters are the number of layers
+        pretrained = (
+            version[2:] == "pt"
+        )  # If the last characters are "pt", use ImageNet pretraining
+        assert num_layers in [18, 34, 50], "ResNet version {} not available".format(
+            num_layers
+        )
 
         self.encoder = ResnetEncoder(num_layers=num_layers, pretrained=pretrained)
         self.decoder = DepthDecoder(num_ch_enc=self.encoder.num_ch_enc)
@@ -42,11 +48,12 @@ class DepthResNet(nn.Module):
         """
         x = self.encoder(x)
         x = self.decoder(x)
-        disps = [x[('disp', i)] for i in range(4)]
+        disps = [x[("disp", i)] for i in range(4)]
 
         if self.training:
             return [self.scale_inv_depth(d)[0] for d in disps]
         else:
             return self.scale_inv_depth(disps[0])[0]
+
 
 ########################################################################################################################

@@ -15,6 +15,7 @@ class SelfSupModel(SfmModel):
     kwargs : dict
         Extra parameters
     """
+
     def __init__(self, **kwargs):
         # Initializes SfmModel
         super().__init__(**kwargs)
@@ -24,13 +25,18 @@ class SelfSupModel(SfmModel):
     @property
     def logs(self):
         """Return logs."""
-        return {
-            **super().logs,
-            **self._photometric_loss.logs
-        }
+        return {**super().logs, **self._photometric_loss.logs}
 
-    def self_supervised_loss(self, image, ref_images, inv_depths, poses,
-                             intrinsics, return_logs=False, progress=0.0):
+    def self_supervised_loss(
+        self,
+        image,
+        ref_images,
+        inv_depths,
+        poses,
+        intrinsics,
+        return_logs=False,
+        progress=0.0,
+    ):
         """
         Calculates the self-supervised photometric loss.
 
@@ -57,8 +63,15 @@ class SelfSupModel(SfmModel):
             Dictionary containing a "loss" scalar a "metrics" dictionary
         """
         return self._photometric_loss(
-            image, ref_images, inv_depths, intrinsics, intrinsics, poses,
-            return_logs=return_logs, progress=progress)
+            image,
+            ref_images,
+            inv_depths,
+            intrinsics,
+            intrinsics,
+            poses,
+            return_logs=return_logs,
+            progress=progress,
+        )
 
     def forward(self, batch, return_logs=False, progress=0.0):
         """
@@ -87,11 +100,16 @@ class SelfSupModel(SfmModel):
         else:
             # Otherwise, calculate self-supervised loss
             self_sup_output = self.self_supervised_loss(
-                batch['rgb_original'], batch['rgb_context_original'],
-                output['inv_depths'], output['poses'], batch['intrinsics'],
-                return_logs=return_logs, progress=progress)
+                batch["rgb_original"],
+                batch["rgb_context_original"],
+                output["inv_depths"],
+                output["poses"],
+                batch["intrinsics"],
+                return_logs=return_logs,
+                progress=progress,
+            )
             # Return loss and metrics
             return {
-                'loss': self_sup_output['loss'],
+                "loss": self_sup_output["loss"],
                 **merge_outputs(output, self_sup_output),
             }

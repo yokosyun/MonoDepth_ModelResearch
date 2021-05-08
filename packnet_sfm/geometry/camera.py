@@ -10,11 +10,13 @@ from packnet_sfm.utils.image import image_grid
 
 ########################################################################################################################
 
+
 class Camera(nn.Module):
     """
     Differentiable camera class implementing reconstruction and projection
     functions for a pinhole model.
     """
+
     def __init__(self, K, Tcw=None):
         """
         Initializes the Camera class
@@ -40,7 +42,7 @@ class Camera(nn.Module):
         self.Tcw = self.Tcw.to(*args, **kwargs)
         return self
 
-########################################################################################################################
+    ########################################################################################################################
 
     @property
     def fx(self):
@@ -73,13 +75,13 @@ class Camera(nn.Module):
     def Kinv(self):
         """Inverse intrinsics (for lifting)"""
         Kinv = self.K.clone()
-        Kinv[:, 0, 0] = 1. / self.fx
-        Kinv[:, 1, 1] = 1. / self.fy
-        Kinv[:, 0, 2] = -1. * self.cx / self.fx
-        Kinv[:, 1, 2] = -1. * self.cy / self.fy
+        Kinv[:, 0, 0] = 1.0 / self.fx
+        Kinv[:, 1, 1] = 1.0 / self.fy
+        Kinv[:, 0, 2] = -1.0 * self.cx / self.fx
+        Kinv[:, 1, 2] = -1.0 * self.cy / self.fy
         return Kinv
 
-########################################################################################################################
+    ########################################################################################################################
 
     def scaled(self, x_scale, y_scale=None):
         """
@@ -101,15 +103,15 @@ class Camera(nn.Module):
         if y_scale is None:
             y_scale = x_scale
         # If no scaling is necessary, return same camera
-        if x_scale == 1. and y_scale == 1.:
+        if x_scale == 1.0 and y_scale == 1.0:
             return self
         # Scale intrinsics and return new camera with same Pose
         K = scale_intrinsics(self.K.clone(), x_scale, y_scale)
         return Camera(K, Tcw=self.Tcw)
 
-########################################################################################################################
+    ########################################################################################################################
 
-    def reconstruct(self, depth, frame='w'):
+    def reconstruct(self, depth, frame="w"):
         """
         Reconstructs pixel-wise 3D points from a depth map.
 
@@ -129,7 +131,9 @@ class Camera(nn.Module):
         assert C == 1
 
         # Create flat index grid
-        grid = image_grid(B, H, W, depth.dtype, depth.device, normalized=False)  # [B,3,H,W]
+        grid = image_grid(
+            B, H, W, depth.dtype, depth.device, normalized=False
+        )  # [B,3,H,W]
         flat_grid = grid.view(B, 3, -1)  # [B,3,HW]
 
         # Estimate the outward rays in the camera frame
@@ -138,16 +142,16 @@ class Camera(nn.Module):
         Xc = xnorm * depth
 
         # If in camera frame of reference
-        if frame == 'c':
+        if frame == "c":
             return Xc
         # If in world frame of reference
-        elif frame == 'w':
+        elif frame == "w":
             return self.Twc @ Xc
         # If none of the above
         else:
-            raise ValueError('Unknown reference frame {}'.format(frame))
+            raise ValueError("Unknown reference frame {}".format(frame))
 
-    def project(self, X, frame='w'):
+    def project(self, X, frame="w"):
         """
         Projects 3D points onto the image plane
 
@@ -167,19 +171,19 @@ class Camera(nn.Module):
         assert C == 3
 
         # Project 3D points onto the camera image plane
-        if frame == 'c':
+        if frame == "c":
             Xc = self.K.bmm(X.view(B, 3, -1))
-        elif frame == 'w':
+        elif frame == "w":
             Xc = self.K.bmm((self.Tcw @ X).view(B, 3, -1))
         else:
-            raise ValueError('Unknown reference frame {}'.format(frame))
+            raise ValueError("Unknown reference frame {}".format(frame))
 
         # Normalize points
         X = Xc[:, 0]
         Y = Xc[:, 1]
         Z = Xc[:, 2].clamp(min=1e-5)
-        Xnorm = 2 * (X / Z) / (W - 1) - 1.
-        Ynorm = 2 * (Y / Z) / (H - 1) - 1.
+        Xnorm = 2 * (X / Z) / (W - 1) - 1.0
+        Ynorm = 2 * (Y / Z) / (H - 1) - 1.0
 
         # Clamp out-of-bounds pixels
         # Xmask = ((Xnorm > 1) + (Xnorm < -1)).detach()

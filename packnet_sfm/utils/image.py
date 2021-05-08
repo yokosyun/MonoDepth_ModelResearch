@@ -54,8 +54,9 @@ def flip_lr(image):
     image_flipped : torch.Tensor [B,3,H,W]
         Flipped image
     """
-    assert image.dim() == 4, 'You need to provide a [B,C,H,W] image to flip'
+    assert image.dim() == 4, "You need to provide a [B,C,H,W] image to flip"
     return torch.flip(image, [3])
+
 
 def flip_model(model, image, flip):
     """
@@ -80,7 +81,9 @@ def flip_model(model, image, flip):
     else:
         return model(image)
 
+
 ########################################################################################################################
+
 
 def gradient_x(image):
     """
@@ -97,6 +100,7 @@ def gradient_x(image):
     """
     return image[:, :, :, :-1] - image[:, :, :, 1:]
 
+
 def gradient_y(image):
     """
     Calculates the gradient of an image in the y dimension
@@ -112,9 +116,11 @@ def gradient_y(image):
     """
     return image[:, :, :-1, :] - image[:, :, 1:, :]
 
+
 ########################################################################################################################
 
-def interpolate_image(image, shape, mode='bilinear', align_corners=True):
+
+def interpolate_image(image, shape, mode="bilinear", align_corners=True):
     """
     Interpolate an image to a different resolution
 
@@ -142,10 +148,12 @@ def interpolate_image(image, shape, mode='bilinear', align_corners=True):
         return image
     else:
         # Interpolate image to match the shape
-        return funct.interpolate(image, size=shape, mode=mode,
-                                 align_corners=align_corners)
+        return funct.interpolate(
+            image, size=shape, mode=mode, align_corners=align_corners
+        )
 
-def interpolate_scales(images, shape=None, mode='bilinear', align_corners=False):
+
+def interpolate_scales(images, shape=None, mode="bilinear", align_corners=False):
     """
     Interpolate list of images to the same shape
 
@@ -172,11 +180,13 @@ def interpolate_scales(images, shape=None, mode='bilinear', align_corners=False)
     if len(shape) > 2:
         shape = shape[-2:]
     # Interpolate all images
-    return [funct.interpolate(image, shape, mode=mode,
-                              align_corners=align_corners) for image in images]
+    return [
+        funct.interpolate(image, shape, mode=mode, align_corners=align_corners)
+        for image in images
+    ]
 
-def match_scales(image, targets, num_scales,
-                 mode='bilinear', align_corners=True):
+
+def match_scales(image, targets, num_scales, mode="bilinear", align_corners=True):
     """
     Interpolate one image to produce a list of images with the same shape as targets
 
@@ -208,12 +218,17 @@ def match_scales(image, targets, num_scales,
             images.append(image)
         else:
             # Otherwise, interpolate
-            images.append(interpolate_image(
-                image, target_shape, mode=mode, align_corners=align_corners))
+            images.append(
+                interpolate_image(
+                    image, target_shape, mode=mode, align_corners=align_corners
+                )
+            )
     # Return scaled images
     return images
 
+
 ########################################################################################################################
+
 
 @lru_cache(maxsize=None)
 def meshgrid(B, H, W, dtype, device, normalized=False):
@@ -246,10 +261,11 @@ def meshgrid(B, H, W, dtype, device, normalized=False):
         xs = torch.linspace(-1, 1, W, device=device, dtype=dtype)
         ys = torch.linspace(-1, 1, H, device=device, dtype=dtype)
     else:
-        xs = torch.linspace(0, W-1, W, device=device, dtype=dtype)
-        ys = torch.linspace(0, H-1, H, device=device, dtype=dtype)
+        xs = torch.linspace(0, W - 1, W, device=device, dtype=dtype)
+        ys = torch.linspace(0, H - 1, H, device=device, dtype=dtype)
     ys, xs = torch.meshgrid([ys, xs])
     return xs.repeat([B, 1, 1]), ys.repeat([B, 1, 1])
+
 
 @lru_cache(maxsize=None)
 def image_grid(B, H, W, dtype, device, normalized=False):
@@ -280,5 +296,6 @@ def image_grid(B, H, W, dtype, device, normalized=False):
     ones = torch.ones_like(xs)
     grid = torch.stack([xs, ys, ones], dim=1)
     return grid
+
 
 ########################################################################################################################

@@ -2,6 +2,7 @@
 
 from packnet_sfm.utils.types import is_tensor, is_list, is_numpy
 
+
 def merge_outputs(*outputs):
     """
     Merges model outputs for logging
@@ -17,8 +18,8 @@ def merge_outputs(*outputs):
         Dictionary with a "metrics" key containing a dictionary with various metrics and
         all other keys that are not "loss" (it is handled differently).
     """
-    ignore = ['loss'] # Keys to ignore
-    combine = ['metrics'] # Keys to combine
+    ignore = ["loss"]  # Keys to ignore
+    combine = ["metrics"]  # Keys to combine
     merge = {key: {} for key in combine}
     for output in outputs:
         # Iterate over all keys
@@ -26,13 +27,13 @@ def merge_outputs(*outputs):
             # Combine these keys
             if key in combine:
                 for sub_key, sub_val in output[key].items():
-                    assert sub_key not in merge[key].keys(), \
-                        'Combining duplicated key {} to {}'.format(sub_key, key)
+                    assert (
+                        sub_key not in merge[key].keys()
+                    ), "Combining duplicated key {} to {}".format(sub_key, key)
                     merge[key][sub_key] = sub_val
             # Ignore these keys
             elif key not in ignore:
-                assert key not in merge.keys(), \
-                    'Adding duplicated key {}'.format(key)
+                assert key not in merge.keys(), "Adding duplicated key {}".format(key)
                 merge[key] = val
     return merge
 
@@ -52,8 +53,10 @@ def stack_batch(batch):
         Stacked batch
     """
     # If there is multi-camera information
-    if len(batch['rgb'].shape) == 5:
-        assert batch['rgb'].shape[0] == 1, 'Only batch size 1 is supported for multi-cameras'
+    if len(batch["rgb"].shape) == 5:
+        assert (
+            batch["rgb"].shape[0] == 1
+        ), "Only batch size 1 is supported for multi-cameras"
         # Loop over all keys
         for key in batch.keys():
             # If list, stack every item
