@@ -14,7 +14,7 @@ from packnet_sfm.utils.depth import (
     post_process_inv_depth,
     compute_depth_metrics,
 )
-from packnet_sfm.utils.horovod import print0, world_size, rank, on_rank_0
+from packnet_sfm.utils.horovod import world_size, rank, on_rank_0
 from packnet_sfm.utils.image import flip_lr
 from packnet_sfm.utils.load import (
     load_class,
@@ -22,7 +22,6 @@ from packnet_sfm.utils.load import (
     load_network,
     filter_args,
 )
-from packnet_sfm.utils.logging import pcolor
 from packnet_sfm.utils.reduce import (
     all_reduce_metrics,
     reduce_dict,
@@ -81,17 +80,9 @@ class ModelWrapper(torch.nn.Module):
 
     def prepare_model(self, resume=None):
         """Prepare self.model (incl. loading previous state)"""
-        print0(pcolor("### Preparing Model", "green"))
         self.model = setup_model(self.config.model, self.config.prepared)
         # Resume model if available
         if resume:
-            print0(
-                pcolor(
-                    "### Resuming from {}".format(resume["file"]),
-                    "magenta",
-                    attrs=["bold"],
-                )
-            )
             self.model = load_network(self.model, resume["state_dict"], "model")
             if "epoch" in resume:
                 self.current_epoch = resume["epoch"]
@@ -99,7 +90,6 @@ class ModelWrapper(torch.nn.Module):
     def prepare_datasets(self, validation_requirements, test_requirements):
         """Prepare datasets for training, validation and test."""
         # Prepare datasets
-        print0(pcolor("### Preparing Datasets", "green"))
 
         augmentation = self.config.datasets.augmentation
         # Setup train dataset (requirements are given by the model itself)
@@ -384,10 +374,7 @@ class ModelWrapper(torch.nn.Module):
             lr = "LR ({}):".format(self.config.model.optimizer.name)
             for param in self.optimizer.param_groups:
                 lr += " {} {:.2e}".format(param["name"], param["lr"])
-            par_line = wrap(
-                pcolor("{:<40}{:>51}".format(bs, lr), "green", attrs=["bold", "dark"])
-            )
-            print(par_line)
+
             print(hor_line)
 
         print(met_line.format(*(("METRIC",) + self.metrics_keys)))
@@ -396,38 +383,8 @@ class ModelWrapper(torch.nn.Module):
             path_line = "{}".format(os.path.join(dataset.path[n], dataset.split[n]))
             if len(dataset.cameras[n]) == 1:  # only allows single cameras
                 path_line += " ({})".format(dataset.cameras[n][0])
-            print(
-                wrap(pcolor("*** {:<87}".format(path_line), "magenta", attrs=["bold"]))
-            )
             print(hor_line)
-            for key, metric in metrics.items():
-                if self.metrics_name in key:
-                    print(
-                        wrap(
-                            pcolor(
-                                num_line.format(
-                                    *((key.upper(),) + tuple(metric.tolist()))
-                                ),
-                                "cyan",
-                            )
-                        )
-                    )
         print(hor_line)
-
-        if self.logger:
-            run_line = wrap(
-                pcolor(
-                    "{:<60}{:>31}".format(
-                        self.config.wandb.url, self.config.wandb.name
-                    ),
-                    "yellow",
-                    attrs=["dark"],
-                )
-            )
-            print(run_line)
-            print(hor_line)
-
-        print()
 
 
 def set_random_seed(seed):
@@ -456,7 +413,6 @@ def setup_depth_net(config, prepared, **kwargs):
     depth_net : nn.Module
         Create depth network
     """
-    print0(pcolor("DepthNet: %s" % config.name, "yellow"))
     depth_net = load_class_args_create(
         config.name,
         paths=[
@@ -489,7 +445,6 @@ def setup_pose_net(config, prepared, **kwargs):
     pose_net : nn.Module
         Created pose network
     """
-    print0(pcolor("PoseNet: %s" % config.name, "yellow"))
     pose_net = load_class_args_create(
         config.name,
         paths=[
@@ -522,7 +477,6 @@ def setup_model(config, prepared, **kwargs):
     model : nn.Module
         Created model
     """
-    print0(pcolor("Model: %s" % config.name, "yellow"))
     model = load_class(
         config.name,
         paths=[
@@ -565,8 +519,6 @@ def setup_dataset(config, mode, requirements, **kwargs):
     # If no dataset is given, return None
     if len(config.path) == 0:
         return None
-
-    print0(pcolor("###### Setup %s datasets" % mode, "red"))
 
     # Global shared dataset arguments
     dataset_args = {
@@ -630,7 +582,6 @@ def setup_dataset(config, mode, requirements, **kwargs):
         if "repeat" in config:
             bar += " (x{})".format(config.repeat[i])
         bar += ": {:<}".format(path_split)
-        print0(pcolor(bar, "yellow"))
 
     # If training, concatenate all datasets into a single one
     if mode == "train":

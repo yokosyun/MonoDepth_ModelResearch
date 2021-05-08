@@ -10,13 +10,12 @@ from cv2 import imwrite
 
 from packnet_sfm.models.model_wrapper import ModelWrapper
 from packnet_sfm.datasets.augmentations import resize_image, to_tensor
-from packnet_sfm.utils.horovod import hvd_init, rank, world_size, print0
+from packnet_sfm.utils.horovod import hvd_init, rank, world_size
 from packnet_sfm.utils.image import load_image
 from packnet_sfm.utils.config import parse_test_file
 
 # from packnet_sfm.utils.load import set_debug
 from packnet_sfm.utils.depth import write_depth, inv2depth, viz_inv_depth
-from packnet_sfm.utils.logging import pcolor
 
 
 def is_image(
@@ -112,12 +111,6 @@ def infer_and_save_depth(
     if save == "npz" or save == "png":
         # Get depth from predicted depth map and save to different formats
         filename = "{}.{}".format(os.path.splitext(output_file)[0], save)
-        print(
-            "Saving {} to {}".format(
-                pcolor(input_file, "cyan", attrs=["bold"]),
-                pcolor(filename, "magenta", attrs=["bold"]),
-            )
-        )
         write_depth(filename, depth=inv2depth(pred_inv_depth))
     else:
         # Prepare RGB image
@@ -127,12 +120,6 @@ def infer_and_save_depth(
         # Concatenate both vertically
         image = np.concatenate([rgb, viz_pred_inv_depth], 0)
         # Save visualization
-        print(
-            "Saving {} to {}".format(
-                pcolor(input_file, "cyan", attrs=["bold"]),
-                pcolor(output_file, "magenta", attrs=["bold"]),
-            )
-        )
         imwrite(output_file, image[:, :, ::-1])
 
 
@@ -173,7 +160,6 @@ def main(args):
         for ext in ["png", "jpg"]:
             files.extend(glob((os.path.join(args.input, "*.{}".format(ext)))))
         files.sort()
-        print0("Found {} files".format(len(files)))
     else:
         # Otherwise, use it as is
         files = [args.input]

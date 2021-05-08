@@ -28,11 +28,6 @@ def world_size():
     return hvd.size() if HAS_HOROVOD else 1
 
 
-@on_rank_0
-def print0(string="\n"):
-    print(string)
-
-
 def reduce_value(value, average, name):
     """
     Reduce the mean value of a tensor from all GPUs
