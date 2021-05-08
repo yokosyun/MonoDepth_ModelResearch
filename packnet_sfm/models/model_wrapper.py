@@ -22,7 +22,6 @@ from packnet_sfm.utils.load import (
     load_network,
     filter_args,
 )
-from packnet_sfm.utils.logging import pcolor
 from packnet_sfm.utils.reduce import (
     all_reduce_metrics,
     reduce_dict,
@@ -375,10 +374,7 @@ class ModelWrapper(torch.nn.Module):
             lr = "LR ({}):".format(self.config.model.optimizer.name)
             for param in self.optimizer.param_groups:
                 lr += " {} {:.2e}".format(param["name"], param["lr"])
-            par_line = wrap(
-                pcolor("{:<40}{:>51}".format(bs, lr), "green", attrs=["bold", "dark"])
-            )
-            print(par_line)
+
             print(hor_line)
 
         print(met_line.format(*(("METRIC",) + self.metrics_keys)))
@@ -387,38 +383,8 @@ class ModelWrapper(torch.nn.Module):
             path_line = "{}".format(os.path.join(dataset.path[n], dataset.split[n]))
             if len(dataset.cameras[n]) == 1:  # only allows single cameras
                 path_line += " ({})".format(dataset.cameras[n][0])
-            print(
-                wrap(pcolor("*** {:<87}".format(path_line), "magenta", attrs=["bold"]))
-            )
             print(hor_line)
-            for key, metric in metrics.items():
-                if self.metrics_name in key:
-                    print(
-                        wrap(
-                            pcolor(
-                                num_line.format(
-                                    *((key.upper(),) + tuple(metric.tolist()))
-                                ),
-                                "cyan",
-                            )
-                        )
-                    )
         print(hor_line)
-
-        if self.logger:
-            run_line = wrap(
-                pcolor(
-                    "{:<60}{:>31}".format(
-                        self.config.wandb.url, self.config.wandb.name
-                    ),
-                    "yellow",
-                    attrs=["dark"],
-                )
-            )
-            print(run_line)
-            print(hor_line)
-
-        print()
 
 
 def set_random_seed(seed):

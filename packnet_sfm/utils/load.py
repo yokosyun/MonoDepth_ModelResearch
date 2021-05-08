@@ -11,7 +11,6 @@ from inspect import signature
 from collections import OrderedDict
 
 from packnet_sfm.utils.misc import make_list, same_shape
-from packnet_sfm.utils.logging import pcolor
 from packnet_sfm.utils.types import is_str
 
 

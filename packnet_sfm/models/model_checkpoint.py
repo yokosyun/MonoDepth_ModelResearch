@@ -6,7 +6,6 @@
 import os, re
 import numpy as np
 import torch
-from packnet_sfm.utils.logging import pcolor
 
 
 def sync_s3_data(local, model):
@@ -93,23 +92,6 @@ class ModelCheckpoint:
         # If it's not time to sync, do nothing
         if self.s3_enabled and (model.current_epoch + 1) % self.s3_frequency == 0:
             filepath = os.path.dirname(filepath)
-            # Print message and links
-            print(
-                pcolor(
-                    "###### Syncing: {} -> {}".format(
-                        filepath, model.config.checkpoint.s3_path
-                    ),
-                    "red",
-                    attrs=["bold"],
-                )
-            )
-            print(
-                pcolor(
-                    "###### URL: {}".format(model.config.checkpoint.s3_url),
-                    "red",
-                    attrs=["bold"],
-                )
-            )
             # If it's time to save code
             if self.save_code:
                 self.save_code = False
