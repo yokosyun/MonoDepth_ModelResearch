@@ -332,7 +332,9 @@ class ModelWrapper(torch.nn.Module):
         """Evaluate batch to produce depth metrics."""
         # Get predicted depth
         inv_depths = self.model(batch)["inv_depths"]
-        save_image(inv_depths[0], "inv_depths.png")  # new
+        save_image(
+            inv_depths[0] / torch.max(inv_depths[0]), "result/train/inv_depths.png"
+        )  # new
         depth = inv2depth(inv_depths[0])
         # Post-process predicted depth
         batch["rgb"] = flip_lr(batch["rgb"])
