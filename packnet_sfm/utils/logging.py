@@ -47,16 +47,18 @@ def prepare_dataset_prefix(config, dataset_idx):
         Dataset prefix for metrics logging
     """
     # Path is always available
-    prefix = '{}'.format(os.path.splitext(config.path[dataset_idx].split('/')[-1])[0])
+    prefix = "{}".format(os.path.splitext(config.path[dataset_idx].split("/")[-1])[0])
     # If split is available and does not contain { character
-    if config.split[dataset_idx] != '' and '{' not in config.split[dataset_idx]:
-        prefix += '-{}'.format(os.path.splitext(os.path.basename(config.split[dataset_idx]))[0])
+    if config.split[dataset_idx] != "" and "{" not in config.split[dataset_idx]:
+        prefix += "-{}".format(
+            os.path.splitext(os.path.basename(config.split[dataset_idx]))[0]
+        )
     # If depth type is available
-    if config.depth_type[dataset_idx] != '':
-        prefix += '-{}'.format(config.depth_type[dataset_idx])
+    if config.depth_type[dataset_idx] != "":
+        prefix += "-{}".format(config.depth_type[dataset_idx])
     # If we are using specific cameras
     if len(config.cameras[dataset_idx]) == 1:  # only allows single cameras
-        prefix += '-{}'.format(config.cameras[dataset_idx][0])
+        prefix += "-{}".format(config.cameras[dataset_idx][0])
     # Return full prefix
     return prefix
 
@@ -75,12 +77,13 @@ def s3_url(config):
     url : str
         String containing the URL pointing to the s3 bucket
     """
-    return 'https://s3.console.aws.amazon.com/s3/buckets/{}/{}'.format(
-        config.checkpoint.s3_path[5:], config.name)
+    return "https://s3.console.aws.amazon.com/s3/buckets/{}/{}".format(
+        config.checkpoint.s3_path[5:], config.name
+    )
 
 
 @on_rank_0
-def print_config(config, color=('blue', 'red', 'cyan'), attrs=('bold', 'dark')):
+def print_config(config, color=("blue", "red", "cyan"), attrs=("bold", "dark")):
     """
     Prints header for model configuration
 
@@ -96,35 +99,36 @@ def print_config(config, color=('blue', 'red', 'cyan'), attrs=('bold', 'dark')):
     # Recursive print function
     def print_recursive(rec_args, n=2, l=0):
         if l == 0:
-            print(pcolor('config:', color[1], attrs=attrs))
+            print(pcolor("config:", color[1], attrs=attrs))
         for key, val in rec_args.items():
             if isinstance(val, dict):
-                print(pcolor('{} {}:'.format('-' * n, key), color[1], attrs=attrs))
+                print(pcolor("{} {}:".format("-" * n, key), color[1], attrs=attrs))
                 print_recursive(val, n + 2, l + 1)
             else:
-                print('{}: {}'.format(pcolor('{} {}'.format('-' * n, key), color[2]), val))
+                print(
+                    "{}: {}".format(pcolor("{} {}".format("-" * n, key), color[2]), val)
+                )
 
     # Color partial functions
-    pcolor1 = partial(pcolor, color='blue', attrs=['bold', 'dark'])
-    pcolor2 = partial(pcolor, color='blue', attrs=['bold'])
+    pcolor1 = partial(pcolor, color="blue", attrs=["bold", "dark"])
+    pcolor2 = partial(pcolor, color="blue", attrs=["bold"])
     # Config and name
-    line = pcolor1('#' * 120)
-    path = pcolor1('### Config: ') + \
-           pcolor2('{}'.format(config.default.replace('/', '.'))) + \
-           pcolor1(' -> ') + \
-           pcolor2('{}'.format(config.config.replace('/', '.')))
-    name = pcolor1('### Name: ') + \
-           pcolor2('{}'.format(config.name))
+    line = pcolor1("#" * 120)
+    path = (
+        pcolor1("### Config: ")
+        + pcolor2("{}".format(config.default.replace("/", ".")))
+        + pcolor1(" -> ")
+        + pcolor2("{}".format(config.config.replace("/", ".")))
+    )
+    name = pcolor1("### Name: ") + pcolor2("{}".format(config.name))
     # Add wandb link if available
     if not config.wandb.dry_run:
-        name += pcolor1(' -> ') + \
-                pcolor2('{}'.format(config.wandb.url))
+        name += pcolor1(" -> ") + pcolor2("{}".format(config.wandb.url))
     # Add s3 link if available
-    if config.checkpoint.s3_path is not '':
-        name += pcolor1('\n### s3:') + \
-                pcolor2(' {}'.format(config.checkpoint.s3_url))
+    if config.checkpoint.s3_path is not "":
+        name += pcolor1("\n### s3:") + pcolor2(" {}".format(config.checkpoint.s3_url))
     # Create header string
-    header = '%s\n%s\n%s\n%s' % (line, path, name, line)
+    header = "%s\n%s\n%s\n%s" % (line, path, name, line)
 
     # Print header, config and header again
     print()
@@ -136,6 +140,7 @@ def print_config(config, color=('blue', 'red', 'cyan'), attrs=('bold', 'dark')):
 
 class AvgMeter:
     """Average meter for logging"""
+
     def __init__(self, n_max=100):
         """
         Initializes a AvgMeter object.

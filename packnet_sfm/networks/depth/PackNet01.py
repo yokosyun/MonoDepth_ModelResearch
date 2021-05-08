@@ -2,8 +2,14 @@
 
 import torch
 import torch.nn as nn
-from packnet_sfm.networks.layers.packnet.layers01 import \
-    PackLayerConv3d, UnpackLayerConv3d, Conv2D, ResidualBlock, InvDepth
+from packnet_sfm.networks.layers.packnet.layers01 import (
+    PackLayerConv3d,
+    UnpackLayerConv3d,
+    Conv2D,
+    ResidualBlock,
+    InvDepth,
+)
+
 
 class PackNet01(nn.Module):
     """
@@ -22,6 +28,7 @@ class PackNet01(nn.Module):
     kwargs : dict
         Extra parameters
     """
+
     def __init__(self, dropout=None, version=None, **kwargs):
         super().__init__()
         self.version = version[1:]
@@ -38,20 +45,20 @@ class PackNet01(nn.Module):
         # Initial convolutional layer
         self.pre_calc = Conv2D(in_channels, ni, 5, 1)
         # Support for different versions
-        if self.version == 'A':  # Channel concatenation
+        if self.version == "A":  # Channel concatenation
             n1o, n1i = n1, n1 + ni + no
             n2o, n2i = n2, n2 + n1 + no
             n3o, n3i = n3, n3 + n2 + no
             n4o, n4i = n4, n4 + n3
             n5o, n5i = n5, n5 + n4
-        elif self.version == 'B':  # Channel addition
+        elif self.version == "B":  # Channel addition
             n1o, n1i = n1, n1 + no
             n2o, n2i = n2, n2 + no
-            n3o, n3i = n3//2, n3//2 + no
-            n4o, n4i = n4//2, n4//2
-            n5o, n5i = n5//2, n5//2
+            n3o, n3i = n3 // 2, n3 // 2 + no
+            n4o, n4i = n4 // 2, n4 // 2
+            n5o, n5i = n5 // 2, n5 // 2
         else:
-            raise ValueError('Unknown PackNet version {}'.format(version))
+            raise ValueError("Unknown PackNet version {}".format(version))
 
         # Encoder
 
@@ -84,9 +91,15 @@ class PackNet01(nn.Module):
         # Depth Layers
 
         self.unpack_disps = nn.PixelShuffle(2)
-        self.unpack_disp4 = nn.Upsample(scale_factor=2, mode='nearest', align_corners=None)
-        self.unpack_disp3 = nn.Upsample(scale_factor=2, mode='nearest', align_corners=None)
-        self.unpack_disp2 = nn.Upsample(scale_factor=2, mode='nearest', align_corners=None)
+        self.unpack_disp4 = nn.Upsample(
+            scale_factor=2, mode="nearest", align_corners=None
+        )
+        self.unpack_disp3 = nn.Upsample(
+            scale_factor=2, mode="nearest", align_corners=None
+        )
+        self.unpack_disp2 = nn.Upsample(
+            scale_factor=2, mode="nearest", align_corners=None
+        )
 
         self.disp4_layer = InvDepth(n4, out_channels=out_channels)
         self.disp3_layer = InvDepth(n3, out_channels=out_channels)
@@ -134,14 +147,14 @@ class PackNet01(nn.Module):
         # Decoder
 
         unpack5 = self.unpack5(x5p)
-        if self.version == 'A':
+        if self.version == "A":
             concat5 = torch.cat((unpack5, skip5), 1)
         else:
             concat5 = unpack5 + skip5
         iconv5 = self.iconv5(concat5)
 
         unpack4 = self.unpack4(iconv5)
-        if self.version == 'A':
+        if self.version == "A":
             concat4 = torch.cat((unpack4, skip4), 1)
         else:
             concat4 = unpack4 + skip4
@@ -150,7 +163,7 @@ class PackNet01(nn.Module):
         udisp4 = self.unpack_disp4(disp4)
 
         unpack3 = self.unpack3(iconv4)
-        if self.version == 'A':
+        if self.version == "A":
             concat3 = torch.cat((unpack3, skip3, udisp4), 1)
         else:
             concat3 = torch.cat((unpack3 + skip3, udisp4), 1)
@@ -159,7 +172,7 @@ class PackNet01(nn.Module):
         udisp3 = self.unpack_disp3(disp3)
 
         unpack2 = self.unpack2(iconv3)
-        if self.version == 'A':
+        if self.version == "A":
             concat2 = torch.cat((unpack2, skip2, udisp3), 1)
         else:
             concat2 = torch.cat((unpack2 + skip2, udisp3), 1)
@@ -168,10 +181,10 @@ class PackNet01(nn.Module):
         udisp2 = self.unpack_disp2(disp2)
 
         unpack1 = self.unpack1(iconv2)
-        if self.version == 'A':
+        if self.version == "A":
             concat1 = torch.cat((unpack1, skip1, udisp2), 1)
         else:
-            concat1 = torch.cat((unpack1 +  skip1, udisp2), 1)
+            concat1 = torch.cat((unpack1 + skip1, udisp2), 1)
         iconv1 = self.iconv1(concat1)
         disp1 = self.disp1_layer(iconv1)
 

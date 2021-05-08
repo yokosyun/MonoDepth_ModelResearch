@@ -1,10 +1,16 @@
 # Copyright 2020 Toyota Research Institute.  All rights reserved.
 
 from functools import partial
-from packnet_sfm.datasets.augmentations import resize_image, resize_sample, \
-    duplicate_sample, colorjitter_sample, to_tensor_sample
+from packnet_sfm.datasets.augmentations import (
+    resize_image,
+    resize_sample,
+    duplicate_sample,
+    colorjitter_sample,
+    to_tensor_sample,
+)
 
 ########################################################################################################################
+
 
 def train_transforms(sample, image_shape, jittering):
     """
@@ -32,6 +38,7 @@ def train_transforms(sample, image_shape, jittering):
     sample = to_tensor_sample(sample)
     return sample
 
+
 def validation_transforms(sample, image_shape):
     """
     Validation data augmentation transformations
@@ -49,9 +56,10 @@ def validation_transforms(sample, image_shape):
         Augmented sample
     """
     if len(image_shape) > 0:
-        sample['rgb'] = resize_image(sample['rgb'], image_shape)
+        sample["rgb"] = resize_image(sample["rgb"], image_shape)
     sample = to_tensor_sample(sample)
     return sample
+
 
 def test_transforms(sample, image_shape):
     """
@@ -70,9 +78,10 @@ def test_transforms(sample, image_shape):
         Augmented sample
     """
     if len(image_shape) > 0:
-        sample['rgb'] = resize_image(sample['rgb'], image_shape)
+        sample["rgb"] = resize_image(sample["rgb"], image_shape)
     sample = to_tensor_sample(sample)
     return sample
+
 
 def get_transforms(mode, image_shape, jittering, **kwargs):
     """
@@ -92,18 +101,14 @@ def get_transforms(mode, image_shape, jittering, **kwargs):
         XXX_transform: Partial function
             Data augmentation transformation for that mode
     """
-    if mode == 'train':
-        return partial(train_transforms,
-                       image_shape=image_shape,
-                       jittering=jittering)
-    elif mode == 'validation':
-        return partial(validation_transforms,
-                       image_shape=image_shape)
-    elif mode == 'test':
-        return partial(test_transforms,
-                       image_shape=image_shape)
+    if mode == "train":
+        return partial(train_transforms, image_shape=image_shape, jittering=jittering)
+    elif mode == "validation":
+        return partial(validation_transforms, image_shape=image_shape)
+    elif mode == "test":
+        return partial(test_transforms, image_shape=image_shape)
     else:
-        raise ValueError('Unknown mode {}'.format(mode))
+        raise ValueError("Unknown mode {}".format(mode))
+
 
 ########################################################################################################################
-

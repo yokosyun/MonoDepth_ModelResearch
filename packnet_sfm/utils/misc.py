@@ -4,6 +4,7 @@ from packnet_sfm.utils.types import is_list
 
 ########################################################################################################################
 
+
 def filter_dict(dictionary, keywords):
     """
     Returns only the keywords that are part of a dictionary
@@ -22,7 +23,9 @@ def filter_dict(dictionary, keywords):
     """
     return [key for key in keywords if key in dictionary]
 
+
 ########################################################################################################################
+
 
 def make_list(var, n=None):
     """
@@ -44,10 +47,12 @@ def make_list(var, n=None):
     if n is None:
         return var
     else:
-        assert len(var) == 1 or len(var) == n, 'Wrong list length for make_list'
+        assert len(var) == 1 or len(var) == n, "Wrong list length for make_list"
         return var * n if len(var) == 1 else var
 
+
 ########################################################################################################################
+
 
 def same_shape(shape1, shape2):
     """
@@ -71,5 +76,6 @@ def same_shape(shape1, shape2):
         if shape1[i] != shape2[i]:
             return False
     return True
+
 
 ########################################################################################################################

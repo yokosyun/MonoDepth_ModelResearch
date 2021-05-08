@@ -8,9 +8,9 @@ import torch.nn.functional as funct
 
 def construct_K(fx, fy, cx, cy, dtype=torch.float, device=None):
     """Construct a [3,3] camera intrinsics from pinhole parameters"""
-    return torch.tensor([[fx,  0, cx],
-                         [0, fy, cy],
-                         [0,  0,  1]], dtype=dtype, device=device)
+    return torch.tensor(
+        [[fx, 0, cx], [0, fy, cy], [0, 0, 1]], dtype=dtype, device=device
+    )
 
 
 def scale_intrinsics(K, x_scale, y_scale):
@@ -21,11 +21,13 @@ def scale_intrinsics(K, x_scale, y_scale):
     K[..., 1, 2] = (K[..., 1, 2] + 0.5) * y_scale - 0.5
     return K
 
+
 ########################################################################################################################
 
 
-def view_synthesis(ref_image, depth, ref_cam, cam,
-                   mode='bilinear', padding_mode='zeros'):
+def view_synthesis(
+    ref_image, depth, ref_cam, cam, mode="bilinear", padding_mode="zeros"
+):
     """
     Synthesize an image from another plus a depth map.
 
@@ -51,18 +53,21 @@ def view_synthesis(ref_image, depth, ref_cam, cam,
     """
     assert depth.size(1) == 1
     # Reconstruct world points from target_camera
-    world_points = cam.reconstruct(depth, frame='w')
+    world_points = cam.reconstruct(depth, frame="w")
     # Project world points onto reference camera
-    ref_coords = ref_cam.project(world_points, frame='w')
+    ref_coords = ref_cam.project(world_points, frame="w")
     # View-synthesis given the projected reference points
-    return funct.grid_sample(ref_image, ref_coords, mode=mode,
-                             padding_mode=padding_mode, align_corners=True)
+    return funct.grid_sample(
+        ref_image, ref_coords, mode=mode, padding_mode=padding_mode, align_corners=True
+    )
+
 
 ########################################################################################################################
 
 
-def view_synthesis_generic(ref_image, depth, ref_cam, cam,
-                           mode='bilinear', padding_mode='zeros', progress=0.0):
+def view_synthesis_generic(
+    ref_image, depth, ref_cam, cam, mode="bilinear", padding_mode="zeros", progress=0.0
+):
     """
     Synthesize an image from another plus a depth map.
 
@@ -88,11 +93,13 @@ def view_synthesis_generic(ref_image, depth, ref_cam, cam,
     """
     assert depth.size(1) == 1
     # Reconstruct world points from target_camera
-    world_points = cam.reconstruct(depth, frame='w')
+    world_points = cam.reconstruct(depth, frame="w")
     # Project world points onto reference camera
-    ref_coords = ref_cam.project(world_points, progress=progress, frame='w')
+    ref_coords = ref_cam.project(world_points, progress=progress, frame="w")
     # View-synthesis given the projected reference points
-    return funct.grid_sample(ref_image, ref_coords, mode=mode,
-                             padding_mode=padding_mode, align_corners=True)
+    return funct.grid_sample(
+        ref_image, ref_coords, mode=mode, padding_mode=padding_mode, align_corners=True
+    )
+
 
 ########################################################################################################################
