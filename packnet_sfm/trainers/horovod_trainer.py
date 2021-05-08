@@ -5,7 +5,6 @@ import torch
 import horovod.torch as hvd
 from packnet_sfm.trainers.base_trainer import BaseTrainer, sample_to_cuda
 from packnet_sfm.utils.config import prep_logger_and_checkpoint
-from packnet_sfm.utils.logging import print_config
 from packnet_sfm.utils.logging import AvgMeter
 
 
@@ -35,7 +34,6 @@ class HorovodTrainer(BaseTrainer):
         module.trainer = self
         # Update and print module configuration
         prep_logger_and_checkpoint(module)
-        print_config(module.config)
 
         # Send module to GPU
         module = module.to("cuda")
