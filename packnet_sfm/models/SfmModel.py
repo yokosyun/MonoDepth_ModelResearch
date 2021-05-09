@@ -122,6 +122,18 @@ class SfmModel(nn.Module):
     def compute_poses(self, image, contexts):
         """Compute poses from image and a sequence of context images"""
         pose_vec = self.pose_net(image, contexts)
+        print(pose_vec)
+        from torchvision.utils import save_image
+        import torch
+
+        save_image(
+            image / torch.max(image),
+            "result/train/image.png",
+        )
+        save_image(
+            contexts[0] / torch.max(contexts[0]),
+            "result/train/contexts.png",
+        )
         return [
             Pose.from_vec(pose_vec[:, i], self.rotation_mode)
             for i in range(pose_vec.shape[1])

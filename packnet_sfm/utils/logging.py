@@ -4,8 +4,6 @@ import os
 from termcolor import colored
 from functools import partial
 
-from packnet_sfm.utils.horovod import on_rank_0
-
 
 def prepare_dataset_prefix(config, dataset_idx):
     """

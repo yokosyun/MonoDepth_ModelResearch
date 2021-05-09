@@ -4,7 +4,7 @@ from datetime import datetime
 from yacs.config import CfgNode
 
 from packnet_sfm.utils.logging import s3_url, prepare_dataset_prefix
-from packnet_sfm.utils.horovod import on_rank_0
+
 from packnet_sfm.utils.types import is_cfg, is_list
 from packnet_sfm.utils.misc import make_list
 from packnet_sfm.utils.load import load_class, backwards_state_dict
@@ -109,7 +109,6 @@ def set_checkpoint(config):
     return config.checkpoint
 
 
-@on_rank_0
 def prep_logger_and_checkpoint(model):
     """
     Use logger and checkpoint information to update configuration

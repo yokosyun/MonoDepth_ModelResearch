@@ -1,22 +1,13 @@
 # Copyright 2020 Toyota Research Institute.  All rights reserved.
 
 import argparse
-
-# from packnet_sfm.models.model_wrapper import ModelWrapper
-from packnet_sfm.models.model_checkpoint import ModelCheckpoint
-
-# from packnet_sfm.trainers.horovod_trainer import HorovodTrainer
 from packnet_sfm.utils.config import parse_train_file
-
-# from packnet_sfm.utils.load import set_debug
 from packnet_sfm.utils.load import filter_args_create
-from packnet_sfm.utils.horovod import hvd_init, rank
+
+# from packnet_sfm.utils.horovod import hvd_init, rank
 
 
 import torch
-
-# from tqdm import tqdm
-from packnet_sfm.utils.logging import prepare_dataset_prefix
 
 
 def sample_to_cuda(data, dtype=None):

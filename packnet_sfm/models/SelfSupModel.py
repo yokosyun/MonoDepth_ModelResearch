@@ -100,7 +100,8 @@ class SelfSupModel(SfmModel):
         save_image(
             output["inv_depths"][0] / torch.max(output["inv_depths"][0]),
             "result/train/inv_depths.png",
-        )  # new
+        )
+        print(output["poses"][0])
         if not self.training:
             # If not training, no need for self-supervised loss
             return output
