@@ -2,7 +2,7 @@
 
 import argparse
 
-from packnet_sfm.models.model_wrapper import ModelWrapper
+# from packnet_sfm.models.model_wrapper import ModelWrapper
 from packnet_sfm.models.model_checkpoint import ModelCheckpoint
 from packnet_sfm.trainers.horovod_trainer import HorovodTrainer
 from packnet_sfm.utils.config import parse_train_file
@@ -23,43 +23,72 @@ def parse_args():
     return args
 
 
-def train(file):
-    """
-    Monocular depth estimation training script.
-
-    Parameters
-    ----------
-    file : str
-        Filepath, can be either a
-        **.yaml** for a yacs configuration file or a
-        **.ckpt** for a pre-trained checkpoint file.
-    """
-    # Initialize horovod
-    hvd_init()
-
-    # Produce configuration and checkpoint from filename
-    config, ckpt = parse_train_file(file)
-
-    # Set debug if requested
-    # set_debug(config.debug)
-
-    # model checkpoint
-    checkpoint = (
-        None
-        if config.checkpoint.filepath is "" or rank() > 0
-        else filter_args_create(ModelCheckpoint, config.checkpoint)
-    )
-
-    # Initialize model wrapper
-    model_wrapper = ModelWrapper(config, resume=ckpt)
-
-    # Create trainer with args.arch parameters
-    trainer = HorovodTrainer(**config.arch, checkpoint=checkpoint)
-
-    # Train model
-    trainer.fit(model_wrapper)
+def training_step(model, batch, *args):
+    """Processes a training batch."""
+    batch = stack_batch(batch)
+    output = model(batch, progress=0)
+    return {"loss": output["loss"], "metrics": output["metrics"]}
 
 
 if __name__ == "__main__":
     args = parse_args()
-    train(args.file)
+
+    # # Produce configuration and checkpoint from filename
+    config, ckpt = parse_train_file(args.file)
+
+    from packnet_sfm.utils.load import (
+        load_class,
+        load_class_args_create,
+        load_network,
+        filter_args,
+    )
+    from packnet_sfm.models.model_wrapper import (
+        setup_model,
+        setup_dataset,
+        set_random_seed,
+        setup_dataloader,
+    )
+    import torch.optim as optim
+    from torchvision.utils import save_image
+    from packnet_sfm.trainers.base_trainer import BaseTrainer, sample_to_cuda
+    from packnet_sfm.models.model_utils import stack_batch
+
+    set_random_seed(config.arch.seed)
+
+    model = setup_model(config.model)
+
+    augmentation = config.datasets.augmentation
+    # Setup train dataset (requirements are given by the model itself)
+    train_dataset = setup_dataset(
+        config.datasets.train,
+        "train",
+        model.train_requirements,
+        **augmentation,
+    )
+
+    train_dataloader = setup_dataloader(train_dataset, config.datasets.train, "train")[
+        0
+    ]
+
+    optimizer = optim.Adam(model.parameters(), lr=0.0002, betas=(0.9, 0.999))
+
+    model.cuda()
+
+    outputs = []
+
+    for epoch in range(0, 100):
+        ## training ##
+        total_train_loss = 0
+        for batch_idx, batch_data in enumerate(train_dataloader):
+            optimizer.zero_grad()
+            # Send samples to GPU and take a training step
+            batch = sample_to_cuda(batch_data)
+            output = training_step(model, batch, batch_idx)
+            print(output)
+            output["loss"].backward()
+            optimizer.step()
+            # Append output to list of outputs
+            output["loss"] = output["loss"].detach()
+            outputs.append(output)
+
+        # save_image("result/train/image.png", batch_data["rgb"])

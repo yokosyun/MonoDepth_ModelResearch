@@ -94,6 +94,13 @@ class SelfSupModel(SfmModel):
         """
         # Calculate predicted depth and pose output
         output = super().forward(batch, return_logs=return_logs)
+        from torchvision.utils import save_image
+        import torch
+
+        save_image(
+            output["inv_depths"][0] / torch.max(output["inv_depths"][0]),
+            "result/train/inv_depths.png",
+        )  # new
         if not self.training:
             # If not training, no need for self-supervised loss
             return output
