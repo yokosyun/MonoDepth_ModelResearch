@@ -4,12 +4,32 @@ import argparse
 
 # from packnet_sfm.models.model_wrapper import ModelWrapper
 from packnet_sfm.models.model_checkpoint import ModelCheckpoint
-from packnet_sfm.trainers.horovod_trainer import HorovodTrainer
+
+# from packnet_sfm.trainers.horovod_trainer import HorovodTrainer
 from packnet_sfm.utils.config import parse_train_file
 
 # from packnet_sfm.utils.load import set_debug
 from packnet_sfm.utils.load import filter_args_create
 from packnet_sfm.utils.horovod import hvd_init, rank
+
+
+import torch
+
+# from tqdm import tqdm
+from packnet_sfm.utils.logging import prepare_dataset_prefix
+
+
+def sample_to_cuda(data, dtype=None):
+    if isinstance(data, str):
+        return data
+    elif isinstance(data, dict):
+        return {key: sample_to_cuda(data[key], dtype) for key in data.keys()}
+    elif isinstance(data, list):
+        return [sample_to_cuda(val, dtype) for val in data]
+    else:
+        # only convert floats (e.g., to half), otherwise preserve (e.g, ints)
+        dtype = dtype if torch.is_floating_point(data) else None
+        return data.to("cuda", dtype=dtype)
 
 
 def parse_args():
@@ -50,7 +70,8 @@ if __name__ == "__main__":
     )
     import torch.optim as optim
     from torchvision.utils import save_image
-    from packnet_sfm.trainers.base_trainer import BaseTrainer, sample_to_cuda
+
+    # from packnet_sfm.trainers.base_trainer import sample_to_cuda
     from packnet_sfm.models.model_utils import stack_batch
 
     set_random_seed(config.arch.seed)
